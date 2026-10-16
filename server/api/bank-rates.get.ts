@@ -1,0 +1,1 @@
+export default defineEventHandler(() => ({ source: 'demonstrative', referenceDate: new Date().toISOString().slice(0, 10), message: 'Cenários ilustrativos. Não são taxas ou ofertas reais de instituições financeiras.', banks: ['Caixa Econômica Federal', 'BRB', 'Itaú', 'Santander', 'Bradesco', 'Inter'] }))

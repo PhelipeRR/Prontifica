@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { font-family: 'DM Sans', sans-serif; color: #172033; background: #f7f9fc; }
+body { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+.font-display { font-family: 'Manrope', sans-serif; }
+.card { @apply rounded-3xl border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(30,45,80,0.06)]; }
+.brand-blue { color: #1265f3; }
+.input { @apply w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100; }
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+select.input:hover, select.input:focus { border-color: #e2e8f0; outline: none; box-shadow: none; }
+.label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500; }
+
+/* Contraste do conteúdo quando o tema escuro está ativo. */
+.dark .card { border-color: #26364b; background: #111c2b; color: #e5edf8; }
+.dark .text-slate-900 { color: #f8fafc !important; }
+.dark .text-slate-800 { color: #e5edf8 !important; }
+.dark .text-slate-700 { color: #cbd5e1 !important; }
+.dark .text-slate-600 { color: #cbd5e1 !important; }
+.dark .text-slate-500 { color: #94a3b8 !important; }
+.dark .text-slate-400 { color: #94a3b8 !important; }
+.dark .border-slate-200, .dark .border-slate-100 { border-color: #26364b !important; }
+.dark .bg-white { background-color: #111c2b !important; }
+.dark .bg-slate-50 { background-color: #172337 !important; }
+.dark .bg-slate-100 { background-color: #223149 !important; }
+.dark .bg-blue-50 { background-color: #142d52 !important; }
+.dark .input { border-color: #33465f; background: #172337; color: #f8fafc; }
+.dark .input::placeholder { color: #94a3b8; }
+.dark input[type='range'] { accent-color: #ffffff; }
+.dark input[type='range']::-webkit-slider-thumb { background: #ffffff; border: 2px solid #075dff; }
+.dark input[type='range']::-moz-range-thumb { background: #ffffff; border: 2px solid #075dff; }

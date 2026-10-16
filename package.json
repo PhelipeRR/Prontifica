@@ -1,0 +1,8 @@
+{
+  "name": "simula-imovel",
+  "private": true,
+  "type": "module",
+  "scripts": {"dev":"nuxt dev","build":"nuxt build","preview":"nuxt preview","test":"vitest run","typecheck":"nuxt typecheck","lint":"eslint ."},
+  "dependencies": {"@nuxtjs/tailwindcss":"^6.12.1","@vueuse/nuxt":"^13.9.0","lucide-vue-next":"^0.468.0","nuxt":"^3.15.4","vue":"^3.5.13"},
+  "devDependencies": {"@nuxt/eslint":"^0.7.5","@types/node":"^22.10.5","vitest":"^2.1.8","vue-tsc":"^2.2.0"}
+}
