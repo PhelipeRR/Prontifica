@@ -49,11 +49,13 @@ export const useFinancingSimulation = () => {
   const downPaymentPercent = computed({ get: () => selectedDownPaymentPercent.value, set: v => { selectedDownPaymentPercent.value = Math.max(20, Math.min(90, v)); form.downPayment = Math.min(form.propertyValue, Math.max(form.propertyValue * .2, form.propertyValue * selectedDownPaymentPercent.value / 100)); touch() } })
   const mcmv = computed(() => {
     const income = form.monthlyIncome || 0
-    if (form.bank !== 'caixa' || form.financingType !== 'RESIDENTIAL' || income <= 0 || income > 13000) return { eligible: false, band: '', rate: residential.caixa.rate, subsidyLimit: 0 }
-    if (income <= 3200) return { eligible: true, band: 'Faixa 1', rate: income <= 2850 ? 4.50 : 4.75, subsidyLimit: 55000 }
-    if (income <= 5000) return { eligible: true, band: 'Faixa 2', rate: income <= 3500 ? 5.00 : income <= 4000 ? 6.00 : 7.00, subsidyLimit: 55000 }
-    if (income <= 9600) return { eligible: true, band: 'Faixa 3', rate: 8.16, subsidyLimit: 0 }
-    return { eligible: true, band: 'Faixa 4 / Classe Média', rate: 10.00, subsidyLimit: 0 }
+    const propertyProvided = form.propertyValue > 0
+    const incomeEligible = income > 0 && income <= 13000
+    if (!incomeEligible) return { eligible: false, incomeEligible, propertyEligible: false, propertyProvided, band: '', rate: residential.caixa.rate, subsidyLimit: 0, propertyLimit: 0 }
+    if (income <= 3200) return { eligible: propertyProvided && form.propertyValue <= 275000, incomeEligible, propertyEligible: propertyProvided && form.propertyValue <= 275000, propertyProvided, band: 'Faixa 1', rate: income <= 2850 ? 4.50 : 4.75, subsidyLimit: 55000, propertyLimit: 275000 }
+    if (income <= 5000) return { eligible: propertyProvided && form.propertyValue <= 275000, incomeEligible, propertyEligible: propertyProvided && form.propertyValue <= 275000, propertyProvided, band: 'Faixa 2', rate: income <= 3500 ? 5.00 : income <= 4000 ? 6.00 : 7.00, subsidyLimit: 55000, propertyLimit: 275000 }
+    if (income <= 9600) return { eligible: propertyProvided && form.propertyValue <= 350000, incomeEligible, propertyEligible: propertyProvided && form.propertyValue <= 350000, propertyProvided, band: 'Faixa 3', rate: 8.16, subsidyLimit: 0, propertyLimit: 350000 }
+    return { eligible: propertyProvided && form.propertyValue <= 500000, incomeEligible, propertyEligible: propertyProvided && form.propertyValue <= 500000, propertyProvided, band: 'Faixa 4 / Classe Média', rate: 10.00, subsidyLimit: 0, propertyLimit: 500000 }
   })
   const selectProgram = (program: FinancingProgram) => { form.program = program; selectProduct() }
   const selectProduct = () => { const p = product.value; form.annualRate = form.program === 'MCMV' && mcmv.value.eligible ? mcmv.value.rate : p.rate; form.indexer = p.indexer; if (!p.systems.includes(form.system)) form.system = p.systems[0]; touch() }
