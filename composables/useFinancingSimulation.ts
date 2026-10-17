@@ -1,6 +1,6 @@
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { calculateFinancing, compareSystems } from '~/utils/finance'
-import type { AmortizationSystem, BankId, FinancingInput, FinancingType, RateIndexer } from '~/types/financing'
+import type { AmortizationSystem, BankId, FinancingInput, FinancingProgram, FinancingType, RateIndexer } from '~/types/financing'
 
 export const financingTypes: Array<{ id: FinancingType; label: string; description: string }> = [
   { id: 'RESIDENTIAL', label: 'Imóvel residencial pronto', description: 'Compra de imóvel novo ou usado' },
@@ -9,6 +9,7 @@ export const financingTypes: Array<{ id: FinancingType; label: string; descripti
   { id: 'COMMERCIAL', label: 'Imóvel comercial', description: 'Aquisição de unidade comercial' },
   { id: 'HOME_EQUITY', label: 'Empréstimo com garantia de imóvel', description: 'Crédito com imóvel quitado em garantia' }
 ]
+export const financingPrograms: Array<{ id: FinancingProgram; label: string }> = [{ id: 'STANDARD', label: 'Financiamento tradicional' }, { id: 'MCMV', label: 'Minha Casa, Minha Vida' }]
 
 type Product = { rate: number; indexer: RateIndexer; systems: AmortizationSystem[]; available: boolean }
 type Catalog = Record<BankId, Record<FinancingType, Product>>
@@ -38,7 +39,7 @@ const makeCatalog = (): Catalog => {
 
 export const useFinancingSimulation = () => {
   const catalog = makeCatalog()
-  const form = reactive<FinancingInput>({ propertyValue: 0, downPayment: 0, termMonths: 240, annualRate: residential.caixa.rate, monthlyIncome: 0, system: 'SAC', bank: 'caixa', financingType: 'RESIDENTIAL', indexer: 'TR' })
+  const form = reactive<FinancingInput>({ propertyValue: 0, downPayment: 0, termMonths: 240, annualRate: residential.caixa.rate, monthlyIncome: 0, system: 'SAC', bank: 'caixa', financingType: 'RESIDENTIAL', indexer: 'TR', program: 'STANDARD' })
   const simulationRevision = ref(0); const touch = () => { simulationRevision.value++ }
   const product = computed(() => catalog[form.bank][form.financingType || 'RESIDENTIAL'])
   // A leitura direta do formulário mantém o dashboard sincronizado com cada alteração do simulador.
@@ -46,10 +47,20 @@ export const useFinancingSimulation = () => {
   const comparison = computed(() => compareSystems({ ...form }))
   const selectedDownPaymentPercent = ref(20)
   const downPaymentPercent = computed({ get: () => selectedDownPaymentPercent.value, set: v => { selectedDownPaymentPercent.value = Math.max(20, Math.min(90, v)); form.downPayment = Math.min(form.propertyValue, Math.max(form.propertyValue * .2, form.propertyValue * selectedDownPaymentPercent.value / 100)); touch() } })
-  const selectProduct = () => { const p = product.value; form.annualRate = p.rate; form.indexer = p.indexer; if (!p.systems.includes(form.system)) form.system = p.systems[0]; touch() }
-  const selectBank = (bank: BankId) => { form.bank = bank; if (!catalog[bank][form.financingType || 'RESIDENTIAL'].available) form.financingType = 'RESIDENTIAL'; selectProduct() }
+  const mcmv = computed(() => {
+    const income = form.monthlyIncome || 0
+    if (form.bank !== 'caixa' || form.financingType !== 'RESIDENTIAL' || income <= 0 || income > 13000) return { eligible: false, band: '', rate: residential.caixa.rate, subsidyLimit: 0 }
+    if (income <= 3200) return { eligible: true, band: 'Faixa 1', rate: income <= 2850 ? 4.50 : 4.75, subsidyLimit: 55000 }
+    if (income <= 5000) return { eligible: true, band: 'Faixa 2', rate: income <= 3500 ? 5.00 : income <= 4000 ? 6.00 : 7.00, subsidyLimit: 55000 }
+    if (income <= 9600) return { eligible: true, band: 'Faixa 3', rate: 8.16, subsidyLimit: 0 }
+    return { eligible: true, band: 'Faixa 4 / Classe Média', rate: 10.00, subsidyLimit: 0 }
+  })
+  const selectProgram = (program: FinancingProgram) => { form.program = program; selectProduct() }
+  const selectProduct = () => { const p = product.value; form.annualRate = form.program === 'MCMV' && mcmv.value.eligible ? mcmv.value.rate : p.rate; form.indexer = p.indexer; if (!p.systems.includes(form.system)) form.system = p.systems[0]; touch() }
+  watch(() => [form.monthlyIncome, form.program], () => { if (form.program === 'MCMV') selectProduct() })
+  const selectBank = (bank: BankId) => { form.bank = bank; if (!catalog[bank][form.financingType || 'RESIDENTIAL'].available) form.financingType = 'RESIDENTIAL'; if (bank !== 'caixa') form.program = 'STANDARD'; selectProduct() }
   const selectFinancingType = (type: FinancingType) => { form.financingType = type; if (!catalog[form.bank][type].available) form.bank = 'caixa'; selectProduct() }
   const availableSystems = computed(() => product.value.systems); const availableBanks = computed(() => (Object.keys(catalog) as BankId[]).filter(bank => catalog[bank][form.financingType || 'RESIDENTIAL'].available))
   const bankRates = computed(() => Object.fromEntries((Object.keys(catalog) as BankId[]).map(bank => [bank, catalog[bank][form.financingType || 'RESIDENTIAL'].rate])))
-  return { form, result, comparison, downPaymentPercent, bankRates, availableSystems, availableBanks, financingTypes, product, catalog, selectBank, selectProduct, selectFinancingType, touch }
+  return { form, result, comparison, downPaymentPercent, bankRates, availableSystems, availableBanks, financingTypes, financingPrograms, product, catalog, mcmv, selectBank, selectProduct, selectFinancingType, selectProgram, touch }
 }
