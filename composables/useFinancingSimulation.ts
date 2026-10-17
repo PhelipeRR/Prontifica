@@ -59,7 +59,7 @@ export const useFinancingSimulation = () => {
   })
   const selectProgram = (program: FinancingProgram) => { form.program = program; selectProduct() }
   const selectProduct = () => { const p = product.value; form.annualRate = form.program === 'MCMV' && mcmv.value.eligible ? mcmv.value.rate : p.rate; form.indexer = p.indexer; if (!p.systems.includes(form.system)) form.system = p.systems[0]; touch() }
-  watch(() => [form.monthlyIncome, form.program], () => { if (form.program === 'MCMV') selectProduct() })
+  watch(() => [form.monthlyIncome, form.propertyValue, form.program], () => { if (form.program === 'MCMV') selectProduct() })
   const selectBank = (bank: BankId) => { form.bank = bank; if (!catalog[bank][form.financingType || 'RESIDENTIAL'].available) form.financingType = 'RESIDENTIAL'; if (bank !== 'caixa') form.program = 'STANDARD'; selectProduct() }
   const selectFinancingType = (type: FinancingType) => { form.financingType = type; if (!catalog[form.bank][type].available) form.bank = 'caixa'; selectProduct() }
   const availableSystems = computed(() => product.value.systems); const availableBanks = computed(() => (Object.keys(catalog) as BankId[]).filter(bank => catalog[bank][form.financingType || 'RESIDENTIAL'].available))
