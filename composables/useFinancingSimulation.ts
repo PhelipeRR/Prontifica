@@ -41,7 +41,9 @@ export const useFinancingSimulation = () => {
   const form = reactive<FinancingInput>({ propertyValue: 0, downPayment: 0, termMonths: 240, annualRate: residential.caixa.rate, monthlyIncome: 0, system: 'SAC', bank: 'caixa', financingType: 'RESIDENTIAL', indexer: 'TR' })
   const simulationRevision = ref(0); const touch = () => { simulationRevision.value++ }
   const product = computed(() => catalog[form.bank][form.financingType || 'RESIDENTIAL'])
-  const result = computed(() => { simulationRevision.value; return calculateFinancing(form) }); const comparison = computed(() => { simulationRevision.value; return compareSystems(form) })
+  // A leitura direta do formulário mantém o dashboard sincronizado com cada alteração do simulador.
+  const result = computed(() => calculateFinancing({ ...form }))
+  const comparison = computed(() => compareSystems({ ...form }))
   const selectedDownPaymentPercent = ref(20)
   const downPaymentPercent = computed({ get: () => selectedDownPaymentPercent.value, set: v => { selectedDownPaymentPercent.value = Math.max(20, Math.min(90, v)); form.downPayment = Math.min(form.propertyValue, Math.max(form.propertyValue * .2, form.propertyValue * selectedDownPaymentPercent.value / 100)); touch() } })
   const selectProduct = () => { const p = product.value; form.annualRate = p.rate; form.indexer = p.indexer; if (!p.systems.includes(form.system)) form.system = p.systems[0]; touch() }
